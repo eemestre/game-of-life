@@ -6,13 +6,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.KeyEvent;
 import java.awt.Point;
-import java.awt.RenderingHints.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.Cursor;
-
-
-import javax.swing.text.Style;
 
 class Inputhandler implements KeyListener, MouseListener, MouseWheelListener, MouseMotionListener {
     String text;
@@ -29,36 +25,18 @@ class Inputhandler implements KeyListener, MouseListener, MouseWheelListener, Mo
             } else if(Main.state == "Running") {
                 Main.state = "Paused";
             }
-        } else if(e.getKeyCode() == KeyEvent.VK_UP) {
-            Main.current.mass += 100;
-        } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-            if(Main.current.mass >= 200) {
-                Main.current.mass -= 100;
-            }
-        } else if(e.getKeyCode() == KeyEvent.VK_DELETE) {
-            Main.particles.remove(Main.current);
-            Main.current = null;
-        } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            int i = Main.particles.indexOf(Main.current);
-            if(i == Main.particles.size() - 1) {
-                Main.current = Main.particles.get(0);
-            } else {
-                Main.current = Main.particles.get(i+1);
-            }
-        } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-            int i = Main.particles.indexOf(Main.current);
-            if(i == 0) {
-                Main.current = Main.particles.get(Main.particles.size() - 1);
-            } else {
-                Main.current = Main.particles.get(i-1);
-            }
+        } else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            Main.grid.reset();
         }
 
 
 
+
+
+
+
         /*if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            this.values.add(this.text);
-            Main.createParticle(this.text);
+            Main.showText(this.text);
             this.text = "";
         } else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             this.text = "";
@@ -76,64 +54,42 @@ class Inputhandler implements KeyListener, MouseListener, MouseWheelListener, Mo
     @Override
     public void mousePressed(MouseEvent e) {
         if(e.getButton() == 1) {
-            Particle p = Main.mouseIn(e.getPoint());
-            if(p == null) {
-                Main.createParticle(e.getPoint());
-            } else {
-                Main.current = p;
-                Main.current.dragged = true;
-                System.out.println("dragged cliquei em cima");
-            }
-        } else if(e.getButton() == 3) {
-            Particle p = Main.mouseIn(e.getPoint());
-            if(p != null) {
-                Main.current = p;
-                Main.current.vx = 0;
-                Main.current.vy = 0;
-                Main.current.ax = 0;
-                Main.current.ay = 0;
-            }
+            Main.undieCell(e.getPoint());
+        } else if (e.getButton() == 3) {
+            Main.killCell(e.getPoint());
         }
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        if(Main.current != null) {
-            if(e.getWheelRotation() == 1) {
-                if(Main.current.radius >= 10) {
-                    Main.current.radius -= 5;
-                }
-            } else {
-                Main.current.radius += 5;
+        if(e.getWheelRotation() == 1) {
+            if(Main.tps > 1) {
+                Main.tps -= 1;
             }
+        } else {
+            Main.tps += 1;
         }
     }
 
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if(Main.current.dragged) {
-            Main.moveCurrent(e.getPoint());
+        if(Main.state == "Paused") {
+            if(e.getX() >= 0 && e.getY() >= 0 && e.getX() < Main.frame.getWidth() && e.getY() < Main.frame.getHeight()){
+                if(e.getModifiersEx() == 1024) {
+                    Main.undieCell(e.getPoint());
+                } else if(e.getModifiersEx() == 4096) {
+                    Main.killCell(e.getPoint());
+                }
+            }
         }
     }
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-        Particle p = Main.mouseIn(e.getPoint());
-        if(p == null) {
-            Main.canvas.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        } else {
-            Main.canvas.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
-    }
+    public void mouseMoved(MouseEvent e) {}
 
     @Override
-    public void mouseReleased(MouseEvent e) {
-        if(Main.current != null) {
-            Main.current.dragged = false;
-            System.out.println("n ta mais dragged");
-        }
-    }
+    public void mouseReleased(MouseEvent e) {}
 
     @Override
     public void keyReleased(KeyEvent e) {}
